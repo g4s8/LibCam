@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Example</string>
+    <string name="action_settings">Settings</string>
+    <string name="a_photo">A photo</string>
+</resources>
