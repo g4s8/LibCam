@@ -7,18 +7,20 @@ apply plugin: 'com.jfrog.bintray'
 group = 'com.g4s8'
 version = new File("${rootDir}/version.txt").text.trim() + "." + System.env.TRAVIS_BUILD_NUMBER ?: "-local"
 
+configurations {
+    javadocDeps
+}
 
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        mignSdkVersion 16
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode System.env.TRAVIS_BUILD_NUMBER?.toInteger() ?: 1
         versionName version
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -47,6 +49,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-annotations:25.1.1'
+    javadocDeps 'com.android.support:support-annotations:25.1.1'
     compile 'com.android.support:support-v4:25.1.1'
 
     testCompile 'junit:junit:4.12'
@@ -62,6 +65,7 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.javadocDeps
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

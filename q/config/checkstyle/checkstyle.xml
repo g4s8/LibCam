@@ -7,7 +7,7 @@
 <module name="Checker">
 
     <module name="FileLength">
-        <property name="max" value="120"/>
+        <property name="max" value="150"/>
         <property name="fileExtensions" value=""/>
     </module>
 

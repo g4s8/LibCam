@@ -39,27 +39,14 @@ public final class ActCamera extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        this.callback = Intent.class.cast(
-            getIntent().getParcelableExtra(ARG_CALLBACK)
-        );
-        final Uri exchange = Uri.class.cast(
-            getIntent().getParcelableExtra(ARG_EXCHANGE)
-        );
-        this.tmp = new File(
-            getIntent().getStringExtra(ARG_TMP)
-        );
-        this.output = new File(
-            getIntent().getStringExtra(ARG_OUTPUT)
-        );
+        this.callback = Intent.class.cast(getIntent().getParcelableExtra(ARG_CALLBACK));
+        final Uri exchange = Uri.class.cast(getIntent().getParcelableExtra(ARG_EXCHANGE));
+        this.tmp = new File(getIntent().getStringExtra(ARG_TMP));
+        this.output = new File(getIntent().getStringExtra(ARG_OUTPUT));
         final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             .putExtra(MediaStore.EXTRA_OUTPUT, exchange);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            final List<ResolveInfo> infoList = getPackageManager()
-                .queryIntentActivities(
-                    intent,
-                    PackageManager.MATCH_DEFAULT_ONLY
-                );
-            for (final ResolveInfo info : infoList) {
+            for (final ResolveInfo info : resolveInfoList(intent)) {
                 grantUriPermission(
                     info.activityInfo.packageName,
                     exchange,
@@ -75,14 +62,20 @@ public final class ActCamera extends Activity {
         );
     }
 
+    private List<ResolveInfo> resolveInfoList(final Intent intent) {
+        return getPackageManager()
+            .queryIntentActivities(
+                intent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            );
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ID) {
-            if (output.exists()) {
-                if (!output.delete()) {
-                    Log.w("LibCam", "Failed to clean output file");
-                    return;
-                }
+            if (output.exists() && !output.delete()) {
+                Log.w("LibCam", "Failed to clean output file");
+                return;
             }
             try {
                 copy(tmp, output);
