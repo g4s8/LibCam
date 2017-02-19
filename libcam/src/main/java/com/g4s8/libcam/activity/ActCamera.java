@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import java.io.File;
@@ -25,12 +26,15 @@ import java.util.List;
  */
 public final class ActCamera extends Activity {
 
+    private static final String FOLDER_NAME = "cam_exchange";
+
     private static final int REQUEST_ID = ActCamera.class.hashCode() & 0x0000FFFF;
 
     private static final String ARG_CALLBACK = "callback";
-    private static final String ARG_EXCHANGE = "exchange";
-    private static final String ARG_TMP = "temp";
     private static final String ARG_OUTPUT = "output";
+    private static final String ARG_AUTHORITY = "authority";
+
+    private static final String SS_TMP = "tmp";
 
     private Intent callback;
     private File tmp;
@@ -40,13 +44,40 @@ public final class ActCamera extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         this.callback = Intent.class.cast(getIntent().getParcelableExtra(ARG_CALLBACK));
-        final Uri exchange = Uri.class.cast(getIntent().getParcelableExtra(ARG_EXCHANGE));
-        this.tmp = new File(getIntent().getStringExtra(ARG_TMP));
+        if (state == null) {
+            tmp = tmpFile();
+        } else {
+            final String tmpPath = state.getString(SS_TMP);
+            if (tmpPath == null) {
+                throw new RuntimeException("tmpPath must not be null");
+            }
+            tmp = new File(tmpPath);
+        }
         this.output = new File(getIntent().getStringExtra(ARG_OUTPUT));
+        startActivityForResult(
+            intent(
+                FileProvider.getUriForFile(
+                    this,
+                    getIntent().getStringExtra(ARG_AUTHORITY),
+                    this.tmp
+                )
+            ),
+            REQUEST_ID
+        );
+    }
+
+    private Intent intent(@NonNull final Uri exchange) {
         final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             .putExtra(MediaStore.EXTRA_OUTPUT, exchange);
+
+        //see https://stackoverflow.com/questions/32789027
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            for (final ResolveInfo info : resolveInfoList(intent)) {
+            final List<ResolveInfo> infos = getPackageManager()
+                .queryIntentActivities(
+                    intent,
+                    PackageManager.MATCH_DEFAULT_ONLY
+                );
+            for (final ResolveInfo info : infos) {
                 grantUriPermission(
                     info.activityInfo.packageName,
                     exchange,
@@ -56,18 +87,13 @@ public final class ActCamera extends Activity {
         } else {
             intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         }
-        startActivityForResult(
-            intent,
-            REQUEST_ID
-        );
+        return intent;
     }
 
-    private List<ResolveInfo> resolveInfoList(final Intent intent) {
-        return getPackageManager()
-            .queryIntentActivities(
-                intent,
-                PackageManager.MATCH_DEFAULT_ONLY
-            );
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        outState.putString(SS_TMP, this.tmp.getAbsolutePath());
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -92,27 +118,37 @@ public final class ActCamera extends Activity {
         }
     }
 
+    @NonNull
+    private File tmpFile() {
+        final File cameraFolder = new File(getFilesDir(), FOLDER_NAME);
+        if (!cameraFolder.exists() && !cameraFolder.mkdirs()) {
+            throw new RuntimeException("Can't create camera folder");
+        }
+        try {
+            return File.createTempFile("cam", ".bitmap", cameraFolder);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create new temp file", e);
+        }
+    }
+
     /**
      * Start activity.
      *
-     * @param ctx      context
-     * @param exchange exchange uri
-     * @param output   output file
-     * @param tmp      temporary file
-     * @param callback callback
+     * @param ctx       context
+     * @param output    output file
+     * @param authority authority
+     * @param callback  callback
      */
     public static void start(
         @NonNull final Context ctx,
-        @NonNull final Uri exchange,
         @NonNull final File output,
-        @NonNull final File tmp,
+        @NonNull final String authority,
         @NonNull final Intent callback
     ) {
         ctx.startActivity(
             new Intent(ctx, ActCamera.class)
-                .putExtra(ARG_EXCHANGE, exchange)
                 .putExtra(ARG_OUTPUT, output.getAbsolutePath())
-                .putExtra(ARG_TMP, tmp.getAbsolutePath())
+                .putExtra(ARG_AUTHORITY, authority)
                 .putExtra(ARG_CALLBACK, callback)
         );
     }
