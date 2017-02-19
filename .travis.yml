@@ -26,9 +26,9 @@ after_success:
   - './gradlew :libcam:jacocoReport'
   - 'bash <(curl -s https://codecov.io/bash)'
 
-#deploy:
-#  provider: 'script'
-#  script: './gradlew :libcam:bintrayUpload'
-#  skip_cleanup: true
-#  on:
-#    branch: 'master'
+deploy:
+  provider: 'script'
+  script: './gradlew :libcam:bintrayUpload'
+  skip_cleanup: true
+  on:
+    branch: 'master'
