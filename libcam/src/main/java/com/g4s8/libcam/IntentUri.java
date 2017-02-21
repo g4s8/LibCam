@@ -14,6 +14,11 @@ import android.support.annotation.NonNull;
  */
 public final class IntentUri implements Parcelable {
 
+    /**
+     * Parcelable creator.
+     */
+    public static final Creator<IntentUri> CREATOR = new ParcelIntentUri();
+
     private final Intent intent;
 
     /**
@@ -25,6 +30,11 @@ public final class IntentUri implements Parcelable {
         this.intent = intent;
     }
 
+    /**
+     * Exchange uri.
+     *
+     * @return uri in intent
+     */
     public Uri uri() {
         return Uri.class.cast(
             this.intent.getParcelableExtra(MediaStore.EXTRA_OUTPUT)
@@ -40,20 +50,4 @@ public final class IntentUri implements Parcelable {
     public void writeToParcel(final Parcel dest, final int flags) {
         dest.writeParcelable(this.intent, flags);
     }
-
-    public static final Creator<IntentUri> CREATOR = new Creator<IntentUri>() {
-        @Override
-        public IntentUri createFromParcel(Parcel in) {
-            return new IntentUri(
-                in.<Intent>readParcelable(
-                    Intent.class.getClassLoader()
-                )
-            );
-        }
-
-        @Override
-        public IntentUri[] newArray(int size) {
-            return new IntentUri[size];
-        }
-    };
 }

@@ -16,6 +16,11 @@ public class Camera {
     private final IntentFactory intentFactory;
     private final Exchange exchange;
 
+    /**
+     * Ctor.
+     *
+     * @param context android context
+     */
     public Camera(@NonNull final Context context) {
         this(
             context,

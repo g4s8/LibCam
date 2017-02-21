@@ -50,10 +50,8 @@ final class Exchange {
     @NonNull
     private File exchangeDir() throws IOException {
         final File dir = new File(this.context.getFilesDir(), DIR);
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new IOException("Failed to create exchange dir");
-            }
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new IOException("Failed to create exchange dir");
         }
         return dir;
     }

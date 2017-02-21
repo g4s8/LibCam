@@ -23,6 +23,7 @@ interface IntentFactory {
     /**
      * Decorator.
      */
+    @SuppressWarnings({"PMD.AbstractNaming", "PMD.ShortClassName"})
     abstract class Wrap implements IntentFactory {
 
         private final IntentFactory origin;
