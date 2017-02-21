@@ -3,8 +3,6 @@ package com.g4s8.libcam;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import com.g4s8.libcam.activity.ActCamera;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -14,36 +12,48 @@ import java.io.IOException;
  */
 public class Camera {
 
-    private final Context ctx;
-    private final String authority;
+    private final Context context;
+    private final IntentFactory intentFactory;
+    private final Exchange exchange;
+
+    public Camera(@NonNull final Context context) {
+        this(
+            context,
+            new IntentFactoryForSdk(context),
+            new Exchange(context)
+        );
+    }
 
     /**
      * Ctor.
      *
-     * @param ctx       Context
-     * @param authority Provider authority
+     * @param context       launcher context
+     * @param exchange      exchange dir
+     * @param intentFactory camera intent factory
      */
-    public Camera(@NonNull final Context ctx, @NonNull final String authority) {
-        this.ctx = ctx;
-        this.authority = authority;
+    private Camera(
+        @NonNull final Context context,
+        @NonNull final IntentFactory intentFactory,
+        @NonNull final Exchange exchange
+    ) {
+        this.context = context;
+        this.intentFactory = intentFactory;
+        this.exchange = exchange;
     }
 
     /**
-     * Take new photo into provided output file, notify via local broadcast.
+     * Create camera app intent with provided authority.
      *
-     * @param callback Local broadcast intent
-     * @param output   Photo output
-     * @throws IOException if IO problems
+     * @param authority local file provider authority
+     * @return intent to take a photo from camera
+     * @throws IOException if failed to create exchange file with provided authority
      */
-    public void takePhoto(
-        @NonNull final Intent callback,
-        @NonNull final File output
+    @NonNull
+    public final Intent intent(
+        @NonNull final Authority authority
     ) throws IOException {
-        ActCamera.start(
-            this.ctx,
-            output,
-            this.authority,
-            callback
+        return intentFactory.intent(
+            exchange.uri(authority)
         );
     }
 }

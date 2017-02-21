@@ -16,8 +16,8 @@
                 android:resource="@xml/exchange_patchs"/>
         </provider>
 
-        <activity
-            android:name="com.g4s8.libcam.activity.ActCamera"
+        <context
+            android:name="com.g4s8.libcam.context.ActCamera"
             android:exported="false"
             android:theme="@style/Theme.Transparent"/>
     </application>
